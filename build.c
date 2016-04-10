@@ -5,6 +5,21 @@
 #include <assert.h>
 #include "p2random.h"
 
+void insert(size_t a[], int num_levels, int fanout[], int* A[])
+{
+	printf("called");
+	size_t size = 1;
+	size_t j,i;
+    for(j=0;j<num_levels;j++)
+     {
+        size = size*fanout[j];
+        for(i=0;i<size;i++)
+ 	    printf("&A[%d][%d] = %p\n",j,i,&A[j][i]);
+		   
+     }
+}
+	
+
 int main(int argc, char **argv)
 {
 	int num_levels;
@@ -15,7 +30,7 @@ int main(int argc, char **argv)
 	else
 	{
 		fprintf(stderr,"Error:Insufficient Parameters");
-		return;
+		return EXIT_FAILURE;
 	}
 	size_t j;
 	int fanout[num_levels];
@@ -31,57 +46,39 @@ int main(int argc, char **argv)
 		else
 		{
 			fprintf(stderr,"Error:Fanout Limit Exceeded");	
-			return;
+			return EXIT_FAILURE;
 		}
 	}
 	min_keys=max_keys/fanout[num_levels-1] +1;
 	if (n<min_keys)
 	{
 		fprintf(stderr,"Error:Insufficient Key Count");
-		return;
+		return EXIT_FAILURE;
 	}
 	else if(n>max_keys)
 	{
 		fprintf(stderr,"Error:Key Count Exceeded");
-		return;
+		return EXIT_FAILURE;
 	}
 	int32_t *a = generate_sorted_unique(n, gen);
 	free(gen);
 	for(i=0;i<n;i++)
 		printf("%d:%d\n",i,a[i]);
 	int error;
-	size_t size=fanout[0];
-	for(j=0;j<num_levels;j++)
-	{
-		error=posix_memalign(&levels,16,20*sizeof(float));
-	}
+	size_t size=1;
 	
-	for(j=0;j<20;j++)
-		printf("&levels[0][%d] = %p\n",j,&levels[j]);
-	// float *A = (float*) memalign(16,20*sizeof(float));
+   int* A[num_levels];
+   //printf("%d", sizeof(float));
+   for(j=0;j<num_levels;j++)
+    {
+       size = size*fanout[j];
+       if (posix_memalign((void **)&A[j], 16, size*sizeof(float)) != 0)
+       printf("Cannot align");
+	   for(i=0;i<size;i++)
+	   printf("&A[%d][%d] = %p\n",j,i,&A[j][i]);
+		   
+    }
+	insert(a,num_levels,fanout,A);
 
-   //align
-   int* A;
-   printf("%d", sizeof(float));
-   
-   if (posix_memalign((void **)&A, 16, 20*sizeof(float)) != 0)
-    printf("Cannot align");
-*A=a[0];
-    for(i = 0; i < 20; i++)
-       printf("&A[%d] = %p\n",i,&A[i]);
-
-        free(A);
-printf("%d",*A);
-
-	/*int32_t *a = generate_sorted_unique(n, gen);
-	free(gen);
-	for (i = 1 ; i < n ; ++i)
-	{
-		assert(a[i - 1] < a[i]);
-	}
-	for(i=0;i<n;i++)
-		printf("%d:%d\n",i,a[i]);
-	//ratio_per_bit(a, n);
-	free(a);*/
 	return EXIT_SUCCESS;
 }
