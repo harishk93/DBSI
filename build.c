@@ -125,14 +125,23 @@ int main(int argc, char **argv)
 			return EXIT_FAILURE;
 		}
 	}
-	for(j=0;j<num_levels;j++)
+	int key_count[num_levels];
+	key_count[1]=fanout[1]-1;
+	min_keys=key_count[1];
+	for(j=2;j<num_levels;j++)
 	{
-		max_keys=max_keys*fanout[j];
-		if(j>0)
-			min_keys=min_keys*fanout[j];
+		key_count[j]=(key_count[j-1]+1)*(fanout[j]-1);
+		min_keys=min_keys+key_count[j];
 	}
-	
-	max_keys=max_keys-1;
+	min_keys++;
+	key_count[0]=fanout[0]-1;
+	max_keys=key_count[0];
+	for(j=1;j<num_levels;j++)
+	{
+		key_count[j]=(key_count[j-1]+1)*(fanout[j]-1);
+		max_keys=max_keys+key_count[j];
+	}
+	//max_keys=max_keys-1;
 	if (n<min_keys)
 	{
 		fprintf(stderr,"Error:Insufficient Key Count");
@@ -153,20 +162,36 @@ int main(int argc, char **argv)
 	int* A[num_levels];
     for(j=0;j<num_levels;j++)
     {
-		size = size*fanout[j];
+		if(j==0)
+		{
+			size=fanout[0];
+		}
+		else
+		{
+			size=key_count[j]+key_count[j]/(fanout[j]-1);
+		}
 		if (posix_memalign((void **)&A[j], 16, (size-1)*sizeof(float)) != 0)
 			printf("Cannot align");
 		for(i=0;i<size-1;i++)
+		{
 			A[j][i]=MAXINT;
-		   
+		   printf("&A[%d][%d]=%p\n",j,i,&A[j][i]);
+		}
     }
 	size_t print_size=1;
 	insert(a,n,num_levels,fanout,A);
 	for(j=0;j<num_levels;j++)
     {
+		if(j==0)
+		{
+			print_size=fanout[0];
+		}
+		else
+		{
+			print_size=key_count[j]+key_count[j]/(fanout[j]-1);
+		}
 		printf("\n");
 		int t=0;
-		print_size = print_size*fanout[j];
 		for(i=0;i<print_size-1;i++)
 		{
 			if(A[j][i]==MAXINT && A[j][i+1]==MAXINT)
