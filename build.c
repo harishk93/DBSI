@@ -6,24 +6,18 @@
 #include "p2random.h"
 #include <limits.h>
 #define MAXINT 2147483647
-
- 
+#define MININT -2147483648
 
 int bs(int* A[],int start_index, int end_index, int32_t key, int level)
 {
-	//printf("Start:%d End:%d\n",start_index,end_index);
 	if(start_index==end_index)
 	{
 		if (A[level][start_index] < key)
 		{
-			//printf("le key");
-			//printf("%d",start_index);
 			return (1+start_index);
 		}
 		else
 		{ 
-			//printf("gr key");
-			//printf("%d",start_index);
 			return start_index;
 		}
 	}
@@ -34,11 +28,8 @@ int bs(int* A[],int start_index, int end_index, int32_t key, int level)
 		    if(A[level][mid] >= key)
 				return bs(A,start_index,mid,key,level);
 		    else
-				return bs(A,mid+1,end_index,key,level);
-			//printf("%d",mid);			
+				return bs(A,mid+1,end_index,key,level);	
 	}
-	
-	//printf("%d",A[level][start_index]);
 }
 
 int search(int * A[], int num_levels, int* fanout, int32_t key )
@@ -51,10 +42,8 @@ int search(int * A[], int num_levels, int* fanout, int32_t key )
 	{
 		start_index = result*fanout[i];
 		end_index = start_index+fanout[i]-2;
-		printf("Start:%d End:%d Result:%d",start_index,end_index,result);
-		result = bs(A,start_index,end_index,key,i); 
-	}
-	
+		result = bs(A,start_index,end_index,key,i); 		
+	}	
 	return result; 
 	
 }
@@ -131,7 +120,6 @@ int main(int argc, char **argv)
 		if(j>0)
 			min_keys=min_keys*fanout[j];
 	}
-	
 	max_keys=max_keys-1;
 	if (n<min_keys)
 	{
@@ -146,8 +134,6 @@ int main(int argc, char **argv)
 	int32_t *a = generate_sorted_unique(n, gen);
 	int32_t *P = generate(p,gen);
 	free(gen);
-	free(a);
-	
 	int error;
 	size_t size=1;
 	int* A[num_levels];
@@ -162,6 +148,7 @@ int main(int argc, char **argv)
     }
 	size_t print_size=1;
 	insert(a,n,num_levels,fanout,A);
+	free(a);
 	for(j=0;j<num_levels;j++)
     {
 		printf("\n");
@@ -173,38 +160,69 @@ int main(int argc, char **argv)
 			{
 				if(t==fanout[j]-1)
 				{
-					printf(" || ");
+					printf("||\n");
 					t=0;
+					if(j==num_levels-1)
+					{
+						A[j][i]=-1;
+					}
 				}
 				else
 				{
-					printf(" MAXINT ");
+					printf("A[%d][%d]=MAXINT\n",j,i);
 					t++;
 				}
 			}
 			else if(A[j][i]==MAXINT && A[j][i+1]!=MAXINT)
 			{
 				if(i+1==print_size-1)
-					printf(" MAXINT ");
-				printf(" || ");
+					printf("A[%d][%d]=MAXINT\n",j,i);
+				printf("||\n");
+				if(j==num_levels-1)
+					{
+						A[j][i]=-1;
+					}
 				t=0;
 			}
 			else
 			{
-				printf("  %d  ",A[j][i]);
+				printf("A[%d][%d]=%d\n",j,i,A[j][i]);
 				t++;
 			}
 		}
-				   
     }
-	printf("\nProbes:\n");
-	for(i=0;i<p;i++)
-		{ printf("%d:%d->%d\n",i,P[i],1);
-		  //printf("%d\n",A[0][0]<P[i]);
+	printf("Page ID \t Range\n");
+	printf("0 \t (MININT,%d]\n",A[num_levels-1][0]);
+	for(i=1;i<print_size-1;i++)
+	{
+		if(A[num_levels-1][i]==-1)
+		{
+			if(A[num_levels-1][i+1]==MAXINT)
+			{
+				printf("%d \t (%d,MAXINT]\n",i,A[num_levels-1][i-1],A[num_levels-1][i+1]);
+				break;
+			}
+			printf("%d \t (%d,%d]\n",i,A[num_levels-1][i-1],A[num_levels-1][i+1]);
 		}
-		printf("%d\n",search(A,num_levels,fanout,P[0]));
-	
-	
-	
+		else if(A[num_levels-1][i-1]==-1)
+		{
+			printf("%d \t (%d,%d]\n",i,A[num_levels-1][i-2],A[num_levels-1][i]);
+		}
+		else if(A[num_levels-1][i]==MAXINT)
+		{
+			printf("%d \t (%d,MAXINT]\n",i,A[num_levels-1][i-1]);
+			break;
+		}
+		else
+		{
+			printf("%d \t (%d,%d]\n",i,A[num_levels-1][i-1],A[num_levels-1][i]);
+		}
+		
+	}
+	printf("\nProbes: \t Page Location\n");
+	for(i=0;i<p;i++)
+		{ 
+			printf("%d:%d \t %d\n",i,P[i],search(A,num_levels,fanout,P[i]));
+		}	
 	return EXIT_SUCCESS;
 }
