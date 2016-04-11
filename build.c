@@ -6,6 +6,58 @@
 #include "p2random.h"
 #include <limits.h>
 #define MAXINT 2147483647
+
+ 
+
+int bs(int* A[],int start_index, int end_index, int32_t key, int level)
+{
+	//printf("Start:%d End:%d\n",start_index,end_index);
+	if(start_index==end_index)
+	{
+		if (A[level][start_index] < key)
+		{
+			//printf("le key");
+			//printf("%d",start_index);
+			return (1+start_index);
+		}
+		else
+		{ 
+			//printf("gr key");
+			//printf("%d",start_index);
+			return start_index;
+		}
+	}
+	
+	else
+	{
+		int mid = (start_index + end_index)/2;
+		    if(A[level][mid] >= key)
+				return bs(A,start_index,mid,key,level);
+		    else
+				return bs(A,mid+1,end_index,key,level);
+			//printf("%d",mid);			
+	}
+	
+	//printf("%d",A[level][start_index]);
+}
+
+int search(int * A[], int num_levels, int* fanout, int32_t key )
+{
+    int result = -1;
+	int start_index = -1;
+	int end_index = -1;
+	result = bs(A,0,fanout[0]-2,key,0);
+	for(int i=1;i<num_levels;i++)
+	{
+		start_index = result*fanout[i];
+		end_index = start_index+fanout[i]-2;
+		printf("Start:%d End:%d Result:%d",start_index,end_index,result);
+		result = bs(A,start_index,end_index,key,i); 
+	}
+	
+	return result; 
+	
+}
 int insert_element(size_t elem, int level_index, int level_count[], int fanout[], int* A[])
 {
 	if((level_count[level_index]+1)%(fanout[level_index])==0 && level_count[level_index]>0) //Node is Full. Recurse up the array
@@ -95,9 +147,7 @@ int main(int argc, char **argv)
 	int32_t *P = generate(p,gen);
 	free(gen);
 	free(a);
-	printf("Probes:\n");
-	for(i=0;i<p;i++)
-		printf("%d:%d\n",i,P[i]);
+	
 	int error;
 	size_t size=1;
 	int* A[num_levels];
@@ -144,7 +194,17 @@ int main(int argc, char **argv)
 				printf("  %d  ",A[j][i]);
 				t++;
 			}
-		}		   
+		}
+				   
     }
+	printf("\nProbes:\n");
+	for(i=0;i<p;i++)
+		{ printf("%d:%d->%d\n",i,P[i],1);
+		  //printf("%d\n",A[0][0]<P[i]);
+		}
+		printf("%d\n",search(A,num_levels,fanout,P[0]));
+	
+	
+	
 	return EXIT_SUCCESS;
 }
