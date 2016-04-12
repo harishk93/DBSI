@@ -54,7 +54,7 @@ This block does the memory assignment and initializes to `MAXINT`.
 ### Insertion
 We use a recursive function `insert_element` to do the insertion. This function is invoked from the main `insert` function for each element. The function `insert_element`, when the node is full, recurses up the tree till it finds a non-empty node. The key is inserted at this node and the count is increased for the lower levels as well. The count increase at the lower level corresponds to the delimiter which is added between two successive nodes. Since the delimiter is added only when the node is full and the call for recursion happens when the node is full, the success of the recursion is used as a signal to add the delimiter.  
 
-###Probing: 
+###Probing
 We perform Binary Search on a node. The Binary Search returns a value from `0+start_index,1+Start_index,...,fanout-1+start_index` corresponding to the fanout further nodes available to search. The algorithm assumes that we return the left of the current key if `search_key <= current_key`. This Binary Search function `bs` is invoked from the function search. The search function searches for the key across all the levels. It uses the result from the previous level to calculate the `start_index` and `end_index` for the current level. 
 ```C
 	start_index = result*fanout[i];
