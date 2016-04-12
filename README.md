@@ -64,7 +64,7 @@ We perform Binary Search on a node. The Binary Search returns a value from `0+st
 The result in the first line is the result of the `bs` call in the previous level. Note that we multiply by fanout value as each node will have fanout-1 keys but will have a extra location for the delimiter. So each of the index from previous level will correspond to a node with fanout entries. The new start_index will take that value. This is called repeatedly and the function returns the final result. 
 
 ## More Information
-The marked down version of this readme file is available at https://github.com/harishk93/DBSI
+The marked down version of this readme file is available at https://github.com/harishk93/DBSI. 
 
 ## License
 This is a project undertaken by `Harish Karthikeyan (HK2854)` and `Thiyagesh Viswanathan (TV2219)` as a course requirement for `COMSW 4112: Database System Implementation`. This is for Fall 2016. 
