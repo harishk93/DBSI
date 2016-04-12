@@ -1,9 +1,17 @@
-# DBSI
+# DBSI Project 2 - Part 1
 
-The aim is to implement a pointer free structure with an array of keys at each level. 
-The program is invoked in the following manner, 
+## Introduction
+The purpose of the project is to implement a file storage system much like the B-Tree but by doing away with the pointers. The tree structure will contain the keys and the result of a search operation will be the index of the range to which the key belongs. The structure supports multiple fanouts between values of 2 and 17. The structure is implemented in C and uses the random generator. 
 
-build K P fanout0, fanout1....
+## Execution
+
+The project comes with a makefile called "Makefile". This is invoked by the command "make Makefile" or just "make". The Makefile automatically compiles the program to generate the executable file "build"
+
+The program is run through 
+```
+./build K P fanouts
+
+```
 where K is the number of keys that need to be inserted in the structure, P is the number of probes, fanout0 is the fanout of root node or level 0, fanout1 is fanout of level 1 and so on till the leaf level. 
 
 The random fucntion from p2random.h library is generates N number of keys in random and pushes them to a[].   
