@@ -19,8 +19,8 @@ where K is the number of keys that need to be inserted in the structure, P is th
 
 ## Components
 
-### Random Function
-A `p2random.h` is used to generate the random input. The functions `generate_sorted_unique` takes the number of random numbers `n` as a parameter to generate an array containing `n` random 32-bit integers, each unique and the array is sorted. The function `generate` also takes `n` as parameter to generate `n` 32-bit integer values. 
+### Random Function and Generating Sample Input
+A `p2random.h` is used to generate the random input. The functions `generate_sorted_unique` takes the number of random numbers `n` as a parameter to generate an array containing `n` random 32-bit integers, each unique and the array is sorted. The function `generate` also takes `n` as parameter to generate `n` 32-bit integer values. We use the former to generate the keys and the latter ot generate the probes. 
 
 ### Key Count Validation
 
@@ -46,11 +46,14 @@ We use `posix_memalign` function to orient the values at 16-byte addresses. The 
 		if (posix_memalign((void **)&A[j], 16, (size-1)*sizeof(float)) != 0)
 			printf("Cannot align");
 		for(i=0;i<size-1;i++)
-			A[j][i]=MAXINT;
-		   
+			A[j][i]=MAXINT;		   
     }
 ```
 This block does the memory assignment and initializes to `MAXINT`. 
+
+### Insertion
+We use a recursive function `insert_element` to do the insertion. This function is invoked from the main `insert` function for each element. The function `insert_element`, when the node is full, recurses up the tree till it finds a non-empty node. The key is inserted at this node and the count is increased for the lower levels as well. The count increase at the lower level corresponds to the delimiter which is added between two successive nodes. Since the delimiter is added only when the node is full and the call for recursion happens when the node is full, the success of the recursion is used as a signal to add the delimiter.  
+
 Inserting the keys: 
 The insert fucntion passes the number of levels and fanout of each level as a parameter and calls insert_element() which recursviely distributes the keys into each level.
 
