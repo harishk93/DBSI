@@ -5,17 +5,52 @@ The purpose of the project is to implement a file storage system much like the B
 
 ## Execution
 
-The project comes with a makefile called "Makefile". This is invoked by the command "make Makefile" or just "make". The Makefile automatically compiles the program to generate the executable file "build"
+The project comes with a makefile called "Makefile". This is invoked by the command 
+```
+make Makefile
+```
+The Makefile automatically compiles the program to generate the executable file "build"
 
 The program is run through 
 ```
 ./build K P fanouts
-
 ```
-where K is the number of keys that need to be inserted in the structure, P is the number of probes, fanout0 is the fanout of root node or level 0, fanout1 is fanout of level 1 and so on till the leaf level. 
+where K is the number of keys that need to be inserted in the structure, P is the number of probes, fanouts are the space separated fanout values for each level starting from the root. Note that in a node with fanout f, there can be f-1 keys. 
 
-The random fucntion from p2random.h library is generates N number of keys in random and pushes them to a[].   
+## Components
 
+### Random Function
+A `p2random.h` is used to generate the random input. The functions `generate_sorted_unique` takes the number of random numbers `n` as a parameter to generate an array containing `n` random 32-bit integers, each unique and the array is sorted. The function `generate` also takes `n` as parameter to generate `n` 32-bit integer values. 
+
+### Key Count Validation
+
+```C
+	for(j=0;j<num_levels;j++)
+	{
+		max_keys=max_keys*fanout[j];
+		if(j>0)
+			min_keys=min_keys*fanout[j];
+	}
+	max_keys=max_keys-1;
+```
+This loop is used to generate the maximum number of keys and the minimum number of keys that a given tree can hold. The key idea is that for the minimum number of keys you would need the tree at level 1 to have maximum number of keys and then you need a extra key to fill up the root at level 0. This is the purpose of the if statement. 
+
+### Memory Allocation
+
+We use `posix_memalign` function to orient the values at 16-byte addresses. The memory is stored in the array `A`. This is a two dimensional array corresponding to the array of keys at each level. 
+```C
+	int* A[num_levels];
+    for(j=0;j<num_levels;j++)
+    {
+		size = size*fanout[j];
+		if (posix_memalign((void **)&A[j], 16, (size-1)*sizeof(float)) != 0)
+			printf("Cannot align");
+		for(i=0;i<size-1;i++)
+			A[j][i]=MAXINT;
+		   
+    }
+```
+This block does the memory assignment and initializes to `MAXINT`. 
 Inserting the keys: 
 The insert fucntion passes the number of levels and fanout of each level as a parameter and calls insert_element() which recursviely distributes the keys into each level.
 
