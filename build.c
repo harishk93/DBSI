@@ -224,5 +224,7 @@ int main(int argc, char **argv)
 		{ 
 			printf("%d:%d \t %d\n",i,P[i],search(A,num_levels,fanout,P[i]));
 		}	
+	for(j=0;j<num_levels;j++)
+	free(A[j]);
 	return EXIT_SUCCESS;
 }
