@@ -9,7 +9,7 @@ The project comes with a makefile called "Makefile". This is invoked by the comm
 ```
 make Makefile
 ```
-The Makefile automatically compiles the program to generate the executable file "build"
+The Makefile automatically compiles the program to generate the executable file "build". A `GCC` compiler is used and needed for this program to run. 
 
 The program is run through 
 ```
@@ -54,17 +54,18 @@ This block does the memory assignment and initializes to `MAXINT`.
 ### Insertion
 We use a recursive function `insert_element` to do the insertion. This function is invoked from the main `insert` function for each element. The function `insert_element`, when the node is full, recurses up the tree till it finds a non-empty node. The key is inserted at this node and the count is increased for the lower levels as well. The count increase at the lower level corresponds to the delimiter which is added between two successive nodes. Since the delimiter is added only when the node is full and the call for recursion happens when the node is full, the success of the recursion is used as a signal to add the delimiter.  
 
-Inserting the keys: 
-The insert fucntion passes the number of levels and fanout of each level as a parameter and calls insert_element() which recursviely distributes the keys into each level.
+###Probing: 
+We perform Binary Search on a node. The Binary Search returns a value from `0+start_index,1+Start_index,...,fanout-1+start_index` corresponding to the fanout further nodes available to search. The algorithm assumes that we return the left of the current key if `search_key <= current_key`. This Binary Search function `bs` is invoked from the function search. The search function searches for the key across all the levels. It uses the result from the previous level to calculate the `start_index` and `end_index` for the current level. 
+```C
+	start_index = result*fanout[i];
+	end_index = start_index+fanout[i]-2;
+	result = bs(A,start_index,end_index,key,i); 
+```
+The result in the first line is the result of the `bs` call in the previous level. Note that we multiply by fanout value as each node will have fanout-1 keys but will have a extra location for the delimiter. So each of the index from previous level will correspond to a node with fanout entries. The new start_index will take that value. This is called repeatedly and the function returns the final result. 
 
+## More Information
+The marked down version of this readme file is available at https://github.com/harishk93/DBSI
 
-Probing: 
-
-The search function iterates over every level from root to leaf calling bs() for each level passing the key, the current level, the start index and end index to search in the current level. 
-bs() uses recursion to retrieve the right index in the right node which is then interpreted into an appropriate range. 
-The start_index and end index for each level i is calculated using the math below and then passed to the bs fucntion which returns as result the node to search for in the next level.  
-start_index = result*fanout[i]
-end_index = start_index + fanout[i] -2 
-
-
+## License
+This is a project undertaken by `Harish Karthikeyan (HK2854)` and `Thiyagesh Viswanathan (TV2219)` as a course requirement for `COMSW 4112: Database System Implementation`. This is for Fall 2016. 
 
