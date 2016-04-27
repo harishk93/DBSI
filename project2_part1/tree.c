@@ -12,10 +12,21 @@
 #include <smmintrin.h>
 #include <nmmintrin.h>
 #include <ammintrin.h> 
-
+#include <x86intrin.h>
 
 extern int posix_memalign(void** memptr, size_t alignment, size_t size);
 size_t alignment = 16;
+
+//Global Declaration of Level 0 for Optimization of Hardcoded Segment 
+__m128i lvl_0_a;
+__m128i lvl_0_b;
+
+void print128_num(__m128i var)
+{
+    uint32_t *val = (uint32_t*) &var;
+    printf("Numerical: %i %i %i %i \n", 
+           val[0], val[1], val[2], val[3]);
+}
 
 Tree* build_index(size_t num_levels, size_t fanout[], size_t num_keys, int32_t key[]) {
         // return null pointer for invalid tree configuration
@@ -93,6 +104,8 @@ Tree* build_index(size_t num_levels, size_t fanout[], size_t num_keys, int32_t k
 
         free(array_capacity);
         free(key_count);
+		lvl_0_a = _mm_load_si128(&(tree->key_array[0][0])); 
+		lvl_0_b = _mm_load_si128(&(tree->key_array[0][0])+4); 
         return tree;
 }
 
@@ -127,23 +140,41 @@ uint32_t probe_index(Tree* tree, int32_t probe_key) {
 	     	
 }*/
 
-void print128_num(__m128i var)
-{
-    uint32_t *val = (uint32_t*) &var;
-    printf("Numerical: %i %i %i %i \n", 
-           val[0], val[1], val[2], val[3]);
-}
 
 uint32_t probe_harcoded(Tree* tree, int32_t probe_key)
 {
 	size_t result = 0; 
 	printf("probe:%d\n",probe_key);
+	
+	//Loading of Probe Key into a 128 register
 	__m128i key = _mm_cvtsi32_si128(probe_key);
 	key = _mm_shuffle_epi32(key,_MM_SHUFFLE(0,0,0,0));
-	__m128i lvl_0_a = _mm_load_si128(&(tree->key_array[0][0])); 
-	__m128i lvl_0_b = _mm_load_si128(&(tree->key_array[0][0])+4); 
+	
+	//Loading of Level 0 into Register - 9 Way
 	__m128i cmp_0_a = _mm_cmplt_epi32(lvl_0_a,key);
-	print128_num(cmp_0_a);
+	__m128i cmp_0_b = _mm_cmplt_epi32(lvl_0_b,key);
+	__m128i cmp_0 = _mm_packs_epi32(cmp_0_a,cmp_0_b);
+	cmp_0 = _mm_packs_epi16(cmp_0,_mm_setzero_si128());
+	int r_0 = _mm_movemask_epi8(cmp_0);
+			//print128_num(cmp_0_a);
+			//print128_num(cmp_0_b);
+			//print128_num(cmp_0);
+	r_0=_bit_scan_forward(r_0^ 0x1FFFF);
+	printf("r_0:%d\n",r_0);
+	
+	//Level 0 Processing Ends here and Level 1 Begins
+	//Leveel 1 Processing - 5 way
+	__m128i lvl_1 = _mm_load_si128(&(tree->key_array[1][r_0 << 2])); 
+		print128_num(lvl_1);
+	__m128i cmp_1 = _mm_cmplt_epi32(lvl_1,key);
+		print128_num(cmp_1);
+	int r_1 = _mm_movemask_epi8(cmp_1);
+	r_1=_bit_scan_forward(r_1^ 0x1FF);
+	printf("r_1:%d\n",r_1);
+	r_1+=(r_0<<2)+r_0;
+	printf("r_1:%d\n",r_1);
+	
+	
 }
 
 void cleanup_index(Tree* tree) {

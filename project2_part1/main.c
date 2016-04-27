@@ -33,9 +33,9 @@ int main(int argc, char* argv[]) {
                 exit(EXIT_FAILURE);
         }
 		
-		for(int i =0; i < tree->node_capacity[0]; i++)
+		for(int i =0; i < tree->node_capacity[0]*tree->node_capacity[1]; i++)
 		{
-			printf("Level 0, %d: %d \n",tree->key_array[0][i],i);
+			printf("Level 1, %d: %d \n",tree->key_array[1][i],i);
 		}
 
         // generate probes
