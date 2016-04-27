@@ -32,6 +32,11 @@ int main(int argc, char* argv[]) {
                 free(gen);
                 exit(EXIT_FAILURE);
         }
+		
+		for(int i =0; i < tree->node_capacity[0]; i++)
+		{
+			printf("Level 0, %d: %d \n",tree->key_array[0][i],i);
+		}
 
         // generate probes
         int32_t* probe = generate(num_probes, gen);
@@ -41,18 +46,20 @@ int main(int argc, char* argv[]) {
         assert(result != NULL);
 
         // perform index probing (Phase 2)
-        for (size_t i = 0; i < num_probes; ++i) {
+        /*for (size_t i = 0; i < num_probes; ++i) {
                 result[i] = probe_index(tree, probe[i]);
-        }
+        }*/
+		
+		probe_harcoded(tree,probe[0]);
 
         // output results
-        for (size_t i = 0; i < num_probes; ++i) {
+      /*  for (size_t i = 0; i < num_probes; ++i) {
                 fprintf(stdout, "%d %u\n", probe[i], result[i]);
-        }
+        } */ 
 
         // cleanup and exit
         free(result);
-        free(probe);
+		free(probe);
         cleanup_index(tree);
         return EXIT_SUCCESS;
 }
