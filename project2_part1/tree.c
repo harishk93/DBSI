@@ -5,6 +5,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <xmmintrin.h>
+#include <emmintrin.h>
+#include <pmmintrin.h>
+#include <tmmintrin.h> 
+#include <smmintrin.h>
+#include <nmmintrin.h>
+#include <ammintrin.h> 
+
 
 extern int posix_memalign(void** memptr, size_t alignment, size_t size);
 size_t alignment = 16;
@@ -105,6 +113,37 @@ uint32_t probe_index(Tree* tree, int32_t probe_key) {
                 result = result * (tree->node_capacity[level] + 1) + k;
         }
         return (uint32_t) result;
+}
+
+/*uint32_t probe_index2(Tree* tree, int32_t probe_key)
+{
+    size_t n = tree->num_levels;
+	size_t i = 0; 
+	for (i=0; i<n; i++)
+	{
+		size_t capacity = tree->node_capacity[i];
+		
+	}
+	     	
+}*/
+
+void print128_num(__m128i var)
+{
+    uint32_t *val = (uint32_t*) &var;
+    printf("Numerical: %i %i %i %i \n", 
+           val[0], val[1], val[2], val[3]);
+}
+
+uint32_t probe_harcoded(Tree* tree, int32_t probe_key)
+{
+	size_t result = 0; 
+	printf("probe:%d\n",probe_key);
+	__m128i key = _mm_cvtsi32_si128(probe_key);
+	key = _mm_shuffle_epi32(key,_MM_SHUFFLE(0,0,0,0));
+	__m128i lvl_0_a = _mm_load_si128(&(tree->key_array[0][0])); 
+	__m128i lvl_0_b = _mm_load_si128(&(tree->key_array[0][0])+4); 
+	__m128i cmp_0_a = _mm_cmplt_epi32(lvl_0_a,key);
+	print128_num(cmp_0_a);
 }
 
 void cleanup_index(Tree* tree) {
