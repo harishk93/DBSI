@@ -1,7 +1,7 @@
 # DBSI Project 2 - Part 1
 
 ## Introduction
-The purpose of the project is to implement a file storage system much like the B-Tree but by doing away with the pointers. The tree structure will contain the keys and the result of a search operation will be the index of the range to which the key belongs. The structure supports fanouts of 5,9 and 17. The structure is implemented in C and uses the random generator. 
+The purpose of the project is to implement a file storage system much like the B-Tree but by doing away with the pointers using intel SSE isntruction set. The tree structure will contain the keys and the result of a search operation will be the index of the range to which the key belongs. The structure supports fanouts of 5,9 and 17. The structure is implemented in C and uses the random generator. 
 
 ## Execution
 
