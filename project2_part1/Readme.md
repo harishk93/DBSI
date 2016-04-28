@@ -31,7 +31,7 @@ We use a recursive function `insert_element` to do the insertion. This function 
 uint32_t probe_index2(Tree* tree, int32_t probe_key)
 ```
 We use Intel’s SSE instruction set to perform probing on every level. 
-we load delimiters of a node in that level into SIMD register of 128 bits. This register is of type __m128i. The probe key is broadcast to all lanes of another SIMD register. We do a SIMD comparison using the `_mm_cmplt_epi32(x,y)` and convert the result to a bit mask using _mm_movemask_epi18  which is responsible for creating the bit mask from high bits of 16 bytes. The bitmask will be a 0/-1 value per lane.  Based on the bitmask value we locate the node in the next level to search for. Using `_mm_packs_epi32` we pack the 8x32 bit integers from the two registers into 8x16 bit integers. We repeat this for n levels. 
+we load delimiters of a node in that level into SIMD register of 128 bits. This register is of type __m128i. The probe key is broadcast to all lanes of another SIMD register. We do a SIMD comparison using the `_mm_cmplt_epi32(x,y)` and convert the result to a bit mask using `_mm_movemask_epi18`  which is responsible for creating the bit mask from high bits of 16 bytes. The bitmask will be a 0/-1 value per lane.  Based on the bitmask value we locate the node in the next level to search for. Using `_mm_packs_epi32` we pack the 8x32 bit integers from the two registers into 8x16 bit integers. We repeat this for n levels. 
 
 ### Probing Hardcoded 
 ```
