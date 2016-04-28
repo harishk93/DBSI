@@ -63,26 +63,37 @@ int main(int argc, char* argv[]) {
 
 		gettimeofday(&start_2, NULL);
 		for (size_t i = 0; i < num_probes; ++i) {
-				result1[i] = probe_index2(tree,probe[i]);
-				result2[i]=result1[i];
+				result1[i] = probe_index_sse(tree,probe[i]);
         }
 		gettimeofday(&stop_2, NULL);	
 		gettimeofday(&start_3, NULL);
+		int flag=0;
 		if(tree->num_levels==3 && (tree->node_capacity[0]==8) && (tree->node_capacity[1]==4) && (tree->node_capacity[2]==8))
 		{
+			__m128i lvl_0_a = _mm_load_si128(&(tree->key_array[0][0])); 
+			__m128i lvl_0_b = _mm_load_si128(&(tree->key_array[0][0])+4); 
+        
 			for (size_t i = 0; i < num_probes/4; ++i) {
 				__m128i k=_mm_load_si128((__m128i*)&probe[4*i]);
-				probe_hardcoded(tree,k,result2,4*i);
+				probe_hardcoded(tree,k,result2,lvl_0_a, lvl_0_b, 4*i);
 			}
+			flag=1; //Setting flag to determine whether result2 needs to be published or not
 		}
-		gettimeofday(&stop_3, NULL);	
+		gettimeofday(&stop_3, NULL);
+		int ch=0;
+		printf("Enter 1 if you want to print the results along with the time:");
+		scanf("%d",&ch);
+		if(ch==1){
 		for (size_t i = 0; i < num_probes; ++i) {
-                fprintf(stdout, "%d:%d %u %u %u\n", i,probe[i], result[i], result1[i], result2[i]);
+                if(flag==1)
+				fprintf(stdout, "%d:%d %u %u %u\n", i,probe[i], result[i], result1[i], result2[i]);
+				else
+				fprintf(stdout, "%d:%d %u %u\n", i,probe[i], result[i], result1[i]);	
         } 
+		}
 		printf("Method 1 took %lu.\n", stop_1.tv_usec - start_1.tv_usec);
 		printf("Method 2 took %lu.\n", stop_2.tv_usec - start_2.tv_usec);
-		printf("Method 3 took %lu.\n", stop_3.tv_usec - start_3.tv_usec);
-		printf("By default the third column is equal to the second and is made equal to the results of the hardcoded implementation only in the case of 9-5-9\n");
+		if(flag==1)printf("Method 3 took %lu.\n", stop_3.tv_usec - start_3.tv_usec);
         free(result);
 		free(result1);
 		free(result2);

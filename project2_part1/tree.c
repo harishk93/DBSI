@@ -17,10 +17,6 @@
 extern int posix_memalign(void** memptr, size_t alignment, size_t size);
 size_t alignment = 16;
 
-//Global Declaration of Level 0 for Optimization of Hardcoded Segment 
-__m128i lvl_0_a;
-__m128i lvl_0_b;
-
 void print128_num(__m128i var)
 {
     uint32_t *val = (uint32_t*) &var;
@@ -104,9 +100,7 @@ Tree* build_index(size_t num_levels, size_t fanout[], size_t num_keys, int32_t k
 
         free(array_capacity);
         free(key_count);
-		lvl_0_a = _mm_load_si128(&(tree->key_array[0][0])); 
-		lvl_0_b = _mm_load_si128(&(tree->key_array[0][0])+4); 
-        return tree;
+		return tree;
 }
 
 uint32_t probe_index(Tree* tree, int32_t probe_key) {
@@ -128,7 +122,7 @@ uint32_t probe_index(Tree* tree, int32_t probe_key) {
         return (uint32_t) result;
 }
 
-uint32_t probe_index2(Tree* tree, int32_t probe_key)
+uint32_t probe_index_sse(Tree* tree, int32_t probe_key)
 {
     size_t n = tree->num_levels;
 	size_t i = 0; 
@@ -139,7 +133,7 @@ uint32_t probe_index2(Tree* tree, int32_t probe_key)
 	{
 		prev_result=result;
 		size_t capacity = tree->node_capacity[i];
-		if(capacity==8 || capacity==9)
+		if(capacity==8)
 		{
 			__m128i lvl_2_a = _mm_load_si128(&(tree->key_array[i][prev_result << 3])); 
 			__m128i lvl_2_b = _mm_load_si128(&(tree->key_array[i][(prev_result << 3) + 4])); 
@@ -154,7 +148,7 @@ uint32_t probe_index2(Tree* tree, int32_t probe_key)
 			result=_bit_scan_forward(result^ 0x1FFFF);
 			result+=(prev_result<<3)+prev_result;
 		}
-		else if(capacity==4 || capacity==5)
+		else if(capacity==4)
 		{
 			__m128i lvl_1 = _mm_load_si128(&(tree->key_array[i][prev_result << 2])); 
 				
@@ -165,7 +159,7 @@ uint32_t probe_index2(Tree* tree, int32_t probe_key)
 
 			result+=(prev_result<<2)+prev_result;
 		}
-		else if(capacity==17 || capacity==16)
+		else if(capacity==16)
 		{
 			__m128i lvl_2_a = _mm_load_si128(&(tree->key_array[i][prev_result << 4])); 
 			__m128i lvl_2_b = _mm_load_si128(&(tree->key_array[i][(prev_result << 4)+4])); 
@@ -191,8 +185,11 @@ uint32_t probe_index2(Tree* tree, int32_t probe_key)
 	}  
 	return result;
 }
-void probe_hardcoded(Tree* tree, __m128i k, uint32_t* result2, uint32_t start)
+void probe_hardcoded(Tree* tree, __m128i k, uint32_t* result2, __m128i lvl_0_a, __m128i lvl_0_b, uint32_t start)
 {
+	//lvl_0_a = _mm_load_si128(&(tree->key_array[0][0])); 
+	//lvl_0_b = _mm_load_si128(&(tree->key_array[0][0])+4); 
+        
 	register __m128i k1=_mm_shuffle_epi32(k,_MM_SHUFFLE(0,0,0,0));
 	register __m128i k2=_mm_shuffle_epi32(k,_MM_SHUFFLE(1,1,1,1));
 	register __m128i k3=_mm_shuffle_epi32(k,_MM_SHUFFLE(2,2,2,2));
