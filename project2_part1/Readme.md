@@ -1,0 +1,42 @@
+# DBSI Project 2 - Part 1
+
+## Introduction
+The purpose of the project is to implement a file storage system much like the B-Tree but by doing away with the pointers. The tree structure will contain the keys and the result of a search operation will be the index of the range to which the key belongs. The structure supports fanouts of 5,9 and 17. The structure is implemented in C and uses the random generator. 
+
+## Execution
+
+The project comes with a makefile called "Makefile". This is invoked by the command 
+```
+make Makefile
+```
+The Makefile automatically compiles the program to generate the executable file "build". A `GCC` compiler is used and needed for this program to run. 
+
+The program is run through 
+```
+./build K P fanouts
+```
+where K is the number of keys that need to be inserted in the structure, P is the number of probes, fanouts are the space separated fanout values for each level starting from the root. Note that in a node with fanout f, there can be f-1 keys. 
+
+## Components
+
+### Random Function and Generating Sample Input
+A `p2random.h` is used to generate the random input. The functions `generate_sorted_unique` takes the number of random numbers `n` as a parameter to generate an array containing `n` random 32-bit integers, each unique and the array is sorted. The function `generate` also takes `n` as parameter to generate `n` 32-bit integer values. We use the former to generate the keys and the latter ot generate the probes. 
+
+### Insertion
+We use a recursive function `insert_element` to do the insertion. This function is invoked from the main `insert` function for each element. The function `insert_element`, when the node is full, recurses up the tree till it finds a non-empty node. The key is inserted at this node and the count is increased for the lower levels as well. The count increase at the lower level corresponds to the delimiter which is added between two successive nodes. Since the delimiter is added only when the node is full and the call for recursion happens when the node is full, the success of the recursion is used as a signal to add the delimiter.  
+
+
+###Probing
+uint32_t probe_index2(Tree* tree, int32_t probe_key)
+We use Intel’s SSE instruction set to perform probing on every level. 
+we load delimiters of a node in that level into SIMD register of 128 bits. This register is of type __m128i. The probe key is broadcast to all lanes of another SIMD register. We do a SIMD comparison using the __mm_cmplt_epi32(x,y) and convert the result to a bit mask using _mm_movemask_epi18  which is responsible for creating the bit mask from high bits of 16 bytes. The bitmask will be a 0/-1 value per lane.  Based on the bitmask value we locate the node in the next level to search for. Using _mm_packs_epi32 we pack the 8x32 bit integers from the two registers into 8x16 bit integers. We repeat this for n levels. 
+
+### Probing Hardcoded 
+
+## More Information
+The marked down version of this readme file is available at https://github.com/harishk93/DBSI. 
+
+## License
+This is a project undertaken by `Harish Karthikeyan (HK2854)` and `Thiyagesh Viswanathan (TV2219)` as a course requirement for `COMSW 4112: Database System Implementation`. This is for Fall 2016. 
+
+
