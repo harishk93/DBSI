@@ -27,12 +27,31 @@ We use a recursive function `insert_element` to do the insertion. This function 
 
 
 ###Probing
+```
 uint32_t probe_index2(Tree* tree, int32_t probe_key)
+```
 We use Intel’s SSE instruction set to perform probing on every level. 
 we load delimiters of a node in that level into SIMD register of 128 bits. This register is of type __m128i. The probe key is broadcast to all lanes of another SIMD register. We do a SIMD comparison using the __mm_cmplt_epi32(x,y) and convert the result to a bit mask using _mm_movemask_epi18  which is responsible for creating the bit mask from high bits of 16 bytes. The bitmask will be a 0/-1 value per lane.  Based on the bitmask value we locate the node in the next level to search for. Using _mm_packs_epi32 we pack the 8x32 bit integers from the two registers into 8x16 bit integers. We repeat this for n levels. 
 
 ### Probing Hardcoded 
+```
+void probe_hardcoded(Tree* tree, __m128i k, uint32_t* result2, uint32_t start):
+```
+We load the root node of index explicitly into register variable using the following code snippet. 
+```
+  __m128i cmp_01_a = _mm_cmplt_epi32(lvl_0_a,k1);
+	__m128i cmp_01_b = _mm_cmplt_epi32(lvl_0_b,k1);
+```
+To load and broadcast four keys from input into register variable we use the following code snippet. 
+```
+__m128i k=_mm_load_si128((__m128i*)&probe[4*i]) in main.c for each set of 4 keys
 
+  register __m128i k1=_mm_shuffle_epi32(k,_MM_SHUFFLE(0,0,0,0));
+	register __m128i k2=_mm_shuffle_epi32(k,_MM_SHUFFLE(1,1,1,1));
+	register __m128i k3=_mm_shuffle_epi32(k,_MM_SHUFFLE(2,2,2,2));
+	register __m128i k4=_mm_shuffle_epi32(k,_MM_SHUFFLE(3,3,3,3));
+```
+Rest of the function dollows what probe_index2() does but in this case the entrie loop across three levels is unrolled. 
 ## More Information
 The marked down version of this readme file is available at https://github.com/harishk93/DBSI. 
 
