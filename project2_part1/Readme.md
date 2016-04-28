@@ -39,8 +39,8 @@ void probe_hardcoded(Tree* tree, __m128i k, uint32_t* result2, uint32_t start):
 ```
 We load the root node of index explicitly into register variable using the following code snippet. 
 ```
-        __m128i cmp_01_a = _mm_cmplt_epi32(lvl_0_a,k1);
-	__m128i cmp_01_b = _mm_cmplt_epi32(lvl_0_b,k1);
+   __m128i cmp_01_a = _mm_cmplt_epi32(lvl_0_a,k1);
+   __m128i cmp_01_b = _mm_cmplt_epi32(lvl_0_b,k1);
 ```
 To load and broadcast four keys from input into register variable we use the following code snippet. 
 ```
