@@ -27,7 +27,7 @@ The insertion into the tree is through the `build_index` function which takes as
 
 ###Probing
 ```
-uint32_t probe_index2(Tree* tree, int32_t probe_key)
+uint32_t probe_index_sse(Tree* tree, int32_t probe_key)
 ```
 We use Intel’s SSE instruction set to perform probing on every level. 
 we load delimiters of a node in that level into SIMD register of 128 bits. This register is of type `__m128i`. The probe key is broadcast to all lanes of another SIMD register. We do a SIMD comparison using the `_mm_cmplt_epi32(x,y)` and convert the result to a bit mask using `_mm_movemask_epi18`  which is responsible for creating the bit mask from high bits of 16 bytes. The bitmask will be a 0/-1 value per lane.  Based on the bitmask value we locate the node in the next level to search for. Using `_mm_packs_epi32` we pack the 8x32 bit integers from the two registers into 8x16 bit integers. We repeat this for n levels. 
@@ -50,7 +50,7 @@ To load and broadcast four keys from input into register variable we use the fol
   register __m128i k3=_mm_shuffle_epi32(k,_MM_SHUFFLE(2,2,2,2));
   register __m128i k4=_mm_shuffle_epi32(k,_MM_SHUFFLE(3,3,3,3));
 ```
-Rest of the function dollows what probe_index2() does but in this case the entrie loop across three levels is unrolled. 
+Rest of the function dollows what `probe_index_sse` does but in this case the entrie loop across three levels is unrolled. 
 ## More Information
 The detailed version of this file is available in form of a pdf file along with the marked down version in this link `https://github.com/harishk93/DBSI/tree/master/part2`
 
