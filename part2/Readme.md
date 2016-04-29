@@ -1,7 +1,7 @@
-# DBSI Project 2 - Part 1
+# DBSI Project 2 - Part 2
 
 ## Introduction
-The purpose of the project is to implement a file storage system much like the B-Tree but by doing away with the pointers using intel SSE isntruction set. The tree structure will contain the keys and the result of a search operation will be the index of the range to which the key belongs. The structure supports fanouts of 5,9 and 17. The structure is implemented in C and uses the random generator. 
+The purpose of the project is to implement a file storage system much like the B-Tree but by doing away with the pointers using intel SSE isntruction set. The tree structure will contain the keys and the result of a search operation will be the index of the range to which the key belongs. The structure supports fanouts of 5,9 and 17. The structure is implemented in C and uses the random generator. It is based on the research paper of Polychroniou and Ross (2014). In addition it also has the implementation of Probing by Binary Search from the reference code provided in class. It uses a customized structure called tree which comprises of the node capacity at each level and the keys at that level. In addition it also has the number of levels which defines that tree. 
 
 ## Execution
 
@@ -22,16 +22,15 @@ where K is the number of keys that need to be inserted in the structure, P is th
 ### Random Function and Generating Sample Input
 A `p2random.h` is used to generate the random input. The functions `generate_sorted_unique` takes the number of random numbers `n` as a parameter to generate an array containing `n` random 32-bit integers, each unique and the array is sorted. The function `generate` also takes `n` as parameter to generate `n` 32-bit integer values. We use the former to generate the keys and the latter ot generate the probes. 
 
-### Insertion
-We use a recursive function `insert_element` to do the insertion. This function is invoked from the main `insert` function for each element. The function `insert_element`, when the node is full, recurses up the tree till it finds a non-empty node. The key is inserted at this node and the count is increased for the lower levels as well. The count increase at the lower level corresponds to the delimiter which is added between two successive nodes. Since the delimiter is added only when the node is full and the call for recursion happens when the node is full, the success of the recursion is used as a signal to add the delimiter. We use the reference code provided by thre professor and merely extend it for probing using SSE. The insertion is parsed into the tree structure availalbe in tree.h. 
-
+### Insertion and Probing by Binary Search
+The insertion into the tree is through the `build_index` function which takes as input the number of levels in the tree along with the fanout from input and the array of keys. It creates the `struct Tree` and returns that as the value. It uses `posix_memalign` to achieve memory alignment. It also has the function `probe_index` which does the search based on Binary Search. Both of these functions were implemented and submitted as the previous part of the project. This program submitted as part 2 involves code provided by the instructor. 
 
 ###Probing
 ```
 uint32_t probe_index2(Tree* tree, int32_t probe_key)
 ```
 We use Intel’s SSE instruction set to perform probing on every level. 
-we load delimiters of a node in that level into SIMD register of 128 bits. This register is of type __m128i. The probe key is broadcast to all lanes of another SIMD register. We do a SIMD comparison using the `_mm_cmplt_epi32(x,y)` and convert the result to a bit mask using `_mm_movemask_epi18`  which is responsible for creating the bit mask from high bits of 16 bytes. The bitmask will be a 0/-1 value per lane.  Based on the bitmask value we locate the node in the next level to search for. Using `_mm_packs_epi32` we pack the 8x32 bit integers from the two registers into 8x16 bit integers. We repeat this for n levels. 
+we load delimiters of a node in that level into SIMD register of 128 bits. This register is of type `__m128i`. The probe key is broadcast to all lanes of another SIMD register. We do a SIMD comparison using the `_mm_cmplt_epi32(x,y)` and convert the result to a bit mask using `_mm_movemask_epi18`  which is responsible for creating the bit mask from high bits of 16 bytes. The bitmask will be a 0/-1 value per lane.  Based on the bitmask value we locate the node in the next level to search for. Using `_mm_packs_epi32` we pack the 8x32 bit integers from the two registers into 8x16 bit integers. We repeat this for n levels. 
 
 ### Probing Hardcoded 
 ```
@@ -53,7 +52,7 @@ To load and broadcast four keys from input into register variable we use the fol
 ```
 Rest of the function dollows what probe_index2() does but in this case the entrie loop across three levels is unrolled. 
 ## More Information
-The detailed version of this file is available in form of a pdf file in this folder. 
+The detailed version of this file is available in form of a pdf file along with the marked down version in this link `https://github.com/harishk93/DBSI/tree/master/part2`
 
 ## License
 This is a project undertaken by `Harish Karthikeyan (HK2854)` and `Thiyagesh Viswanathan (TV2219)` as a course requirement for `COMSW 4112: Database System Implementation`. This is for Fall 2016. 
